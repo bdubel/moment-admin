@@ -1,0 +1,23 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Moment Admin',
+  description: 'Admin dashboard for Moment app',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet" />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
