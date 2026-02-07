@@ -193,6 +193,7 @@ export default function AdminPage() {
                   <div className="pending-list">
                     {pendingMembers.map((pending, idx) => (
                       <div key={idx} className="pending-item">
+                        {pending.name && <div className="pending-name">{pending.name}</div>}
                         <div className="pending-phone">{pending.phone}</div>
                         <div className="pending-date">
                           Added {new Date(pending.added_at).toLocaleDateString()}

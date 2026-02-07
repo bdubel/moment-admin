@@ -25,6 +25,7 @@ export interface BetaGroupMember {
 export interface BetaGroupPendingMember {
   group_id: string;
   phone: string;
+  name: string | null;
   added_at: string;
 }
 

@@ -16,3 +16,5 @@ out/
 
 # MacOS
 .DS_Store
+.vercel
+.env.production
