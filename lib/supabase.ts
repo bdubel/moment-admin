@@ -48,7 +48,7 @@ export async function getBetaGroupMembers(groupId: string): Promise<BetaGroupMem
     .from('beta_group_members')
     .select(`
       *,
-      profile:profiles!beta_group_members_user_id_fkey (
+      profile:profiles (
         first_name,
         last_name,
         avatar_url
