@@ -1,32 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  getBetaGroups,
-  getBetaGroupMembers,
-  getBetaGroupPendingMembers,
-  BetaGroup,
-  BetaGroupMember,
-  BetaGroupPendingMember
-} from '@/lib/supabase';
-import './admin.css';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { BetaGroupsTab } from '@/components/beta-groups-tab';
+import { UsersTab } from '@/components/users-tab';
+import { MetricsTab } from '@/components/metrics-tab';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [betaGroups, setBetaGroups] = useState<BetaGroup[]>([]);
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [members, setMembers] = useState<BetaGroupMember[]>([]);
-  const [pendingMembers, setPendingMembers] = useState<BetaGroupPendingMember[]>([]);
 
   useEffect(() => {
-    // Check if already authenticated
     const auth = sessionStorage.getItem('admin_auth');
     if (auth === 'true') {
       setIsAuthenticated(true);
-      loadBetaGroups();
     }
   }, []);
 
@@ -45,7 +36,6 @@ export default function AdminPage() {
       if (response.ok) {
         sessionStorage.setItem('admin_auth', 'true');
         setIsAuthenticated(true);
-        loadBetaGroups();
       } else {
         setError('Invalid password');
         setPassword('');
@@ -61,152 +51,72 @@ export default function AdminPage() {
     sessionStorage.removeItem('admin_auth');
     setIsAuthenticated(false);
     setPassword('');
-    setBetaGroups([]);
-    setMembers([]);
-    setPendingMembers([]);
-    setSelectedGroup(null);
-  };
-
-  const loadBetaGroups = async () => {
-    const groups = await getBetaGroups();
-    setBetaGroups(groups);
-    if (groups.length > 0 && !selectedGroup) {
-      setSelectedGroup(groups[0].id);
-      loadGroupData(groups[0].id);
-    }
-  };
-
-  const loadGroupData = async (groupId: string) => {
-    const [groupMembers, pending] = await Promise.all([
-      getBetaGroupMembers(groupId),
-      getBetaGroupPendingMembers(groupId),
-    ]);
-    setMembers(groupMembers);
-    setPendingMembers(pending);
-  };
-
-  const handleGroupChange = (groupId: string) => {
-    setSelectedGroup(groupId);
-    loadGroupData(groupId);
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="admin-container">
-        <div className="admin-login">
-          <h1>Moment Admin</h1>
-          <form onSubmit={handleLogin}>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter admin password"
-              disabled={loading}
-              autoFocus
-            />
-            {error && <p className="error">{error}</p>}
-            <button type="submit" disabled={loading}>
-              {loading ? 'Verifying...' : 'Access Dashboard'}
-            </button>
-          </form>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl">Moment Admin</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter admin password"
+                  disabled={loading}
+                  autoFocus
+                  className="w-full px-4 py-2 border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              {error && (
+                <p className="text-sm text-destructive">{error}</p>
+              )}
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Verifying...' : 'Access Dashboard'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  const selectedGroupData = betaGroups.find(g => g.id === selectedGroup);
-
   return (
-    <div className="admin-container">
-      <div className="admin-dashboard">
-        <div className="admin-header">
-          <h1>Beta Groups Admin</h1>
-          <button onClick={handleLogout} className="logout-btn">Logout</button>
-        </div>
-
-        <div className="admin-content">
-          <div className="groups-section">
-            <h2>Beta Groups ({betaGroups.length})</h2>
-            {betaGroups.length === 0 ? (
-              <p className="empty-state">No beta groups found</p>
-            ) : (
-              <div className="groups-list">
-                {betaGroups.map(group => (
-                  <button
-                    key={group.id}
-                    className={`group-item ${selectedGroup === group.id ? 'active' : ''}`}
-                    onClick={() => handleGroupChange(group.id)}
-                  >
-                    <div className="group-name">{group.name}</div>
-                    <div className="group-date">
-                      Created {new Date(group.created_at).toLocaleDateString()}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+    <div className="min-h-screen bg-background">
+      <Tabs defaultValue="beta-groups">
+        <div className="border-b">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-8">
+            <h1 className="text-2xl font-bold">Moment Admin</h1>
+            <TabsList className="grid grid-cols-3">
+              <TabsTrigger value="beta-groups">Beta Groups</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
+              <TabsTrigger value="metrics">Metrics</TabsTrigger>
+            </TabsList>
+            <Button variant="outline" onClick={handleLogout}>
+              Logout
+            </Button>
           </div>
-
-          {selectedGroupData && (
-            <div className="data-section">
-              <div className="members-section">
-                <h2>Active Members ({members.length})</h2>
-                {members.length === 0 ? (
-                  <p className="empty-state">No active members yet</p>
-                ) : (
-                  <div className="members-list">
-                    {members.map(member => (
-                      <div key={member.user_id} className="member-item">
-                        <div className="member-avatar">
-                          {member.profile?.avatar_url ? (
-                            <img src={member.profile.avatar_url} alt="Avatar" />
-                          ) : (
-                            <div className="avatar-placeholder">
-                              {member.profile?.first_name?.[0] || '?'}
-                            </div>
-                          )}
-                        </div>
-                        <div className="member-info">
-                          <div className="member-name">
-                            {member.profile?.first_name}{' '}
-                            {member.profile?.last_name || ''}
-                          </div>
-                          <div className="member-joined">
-                            Joined {new Date(member.joined_at).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="pending-section">
-                <h2>Pending Members ({pendingMembers.length})</h2>
-                <p className="section-description">
-                  Phone numbers awaiting signup. When users create accounts with these numbers,
-                  they'll be automatically enrolled and become friends with all group members.
-                </p>
-                {pendingMembers.length === 0 ? (
-                  <p className="empty-state">No pending members</p>
-                ) : (
-                  <div className="pending-list">
-                    {pendingMembers.map((pending, idx) => (
-                      <div key={idx} className="pending-item">
-                        {pending.name && <div className="pending-name">{pending.name}</div>}
-                        <div className="pending-phone">{pending.phone}</div>
-                        <div className="pending-date">
-                          Added {new Date(pending.added_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
-      </div>
+
+        <div className="container mx-auto px-4 py-8">
+          <TabsContent value="beta-groups" className="space-y-4">
+            <BetaGroupsTab />
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-4">
+            <UsersTab />
+          </TabsContent>
+
+          <TabsContent value="metrics" className="space-y-4">
+            <MetricsTab />
+          </TabsContent>
+        </div>
+      </Tabs>
     </div>
   );
 }
