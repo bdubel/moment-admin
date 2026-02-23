@@ -3,10 +3,10 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET(
   request: Request,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const userId = params.userId;
+    const { userId } = await params;
 
     // Get posts
     const { data: posts } = await supabaseAdmin
