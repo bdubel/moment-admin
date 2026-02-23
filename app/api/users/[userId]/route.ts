@@ -24,7 +24,7 @@ export async function GET(
       .or(`from_user_id.eq.${userId},to_user_id.eq.${userId}`)
       .order('created_at', { ascending: false });
 
-    let friends = [];
+    let friends: any[] = [];
     if (friendRequests && friendRequests.length > 0) {
       const friendIds = friendRequests.map((fr) =>
         fr.from_user_id === userId ? fr.to_user_id : fr.from_user_id
@@ -57,7 +57,7 @@ export async function GET(
       `)
       .eq('user_id', userId);
 
-    let groups = [];
+    let groups: any[] = [];
     if (groupMembers) {
       groups = await Promise.all(
         groupMembers
